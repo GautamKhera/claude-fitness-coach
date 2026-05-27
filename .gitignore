@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Local Claude state
+.claude/
+
+# Never commit Hevy keys (defense-in-depth — users' data dirs are separate but just in case)
+.hevy-api.txt
+.hevy-key.txt
+
+# Node / package manager artifacts (no JS code expected, but defensive)
+node_modules/
