@@ -1,0 +1,146 @@
+#!/bin/sh
+# claude-fitness-coach pre-commit hook
+#
+# Blocks commits that look like they contain a Hevy API key.
+# Defense-in-depth on top of .gitignore.
+#
+# Works on:
+#   - macOS / Linux: native /bin/sh
+#   - Windows: Git for Windows ships bash/sh — the shebang Just Works
+#
+# To bypass for a confirmed false positive: git commit --no-verify
+#
+# Heuristic (kept intentionally fuzzy to avoid embedding example keys here):
+#   - Look at staged diff additions.
+#   - Flag long alphanumeric tokens (>=30 chars, [A-Za-z0-9_-]) that mix
+#     character classes (have both letters and digits, or both upper and lower).
+#   - Require nearby context within +/- 2 lines: the word "hevy" OR a
+#     "api[-_]?key" pattern (case-insensitive).
+#   - If both match, block.
+
+set -u
+
+# Gather staged additions only (lines starting with "+", excluding the "+++" header).
+DIFF=$(git diff --cached -U2 --no-color 2>/dev/null) || exit 0
+if [ -z "$DIFF" ]; then
+    exit 0
+fi
+
+# Walk the diff, tracking the current file path so we can report it.
+# We use awk for portability.
+RESULT=$(printf '%s\n' "$DIFF" | awk '
+  BEGIN {
+    file = ""
+    line_no = 0
+    context_window = 2
+    # Ring buffer of recent line bodies (with sign stripped) for context.
+    buf_n = 0
+  }
+
+  # File header lines look like: diff --git a/path b/path
+  /^diff --git / {
+    # Extract b/ path
+    n = split($0, parts, " ")
+    if (n >= 4) {
+      bpath = parts[4]
+      sub(/^b\//, "", bpath)
+      file = bpath
+      line_no = 0
+      delete buf
+      buf_n = 0
+    }
+    next
+  }
+
+  # Hunk header: @@ -a,b +c,d @@  — reset line_no to c
+  /^@@/ {
+    if (match($0, /\+[0-9]+/)) {
+      tok = substr($0, RSTART+1, RLENGTH-1)
+      line_no = tok + 0 - 1
+    }
+    delete buf
+    buf_n = 0
+    next
+  }
+
+  # Skip the +++ / --- file lines
+  /^\+\+\+ / { next }
+  /^--- /    { next }
+
+  {
+    body = $0
+    is_addition = 0
+    if (substr(body, 1, 1) == "+") {
+      is_addition = 1
+      body = substr(body, 2)
+      line_no = line_no + 1
+    } else if (substr(body, 1, 1) == "-") {
+      # removed line — does not advance new-file line_no
+      next
+    } else {
+      # context line in the new file
+      line_no = line_no + 1
+    }
+
+    # Push body into a small ring buffer for context lookbehind
+    buf_n = buf_n + 1
+    buf[buf_n] = body
+
+    if (!is_addition) next
+
+    # Test the additional line for a key-shaped token
+    # Token = a contiguous run of [A-Za-z0-9_-] of length >= 30
+    tmp = body
+    found_token = ""
+    while (match(tmp, /[A-Za-z0-9_-]+/)) {
+      t = substr(tmp, RSTART, RLENGTH)
+      tmp = substr(tmp, RSTART + RLENGTH)
+      if (length(t) < 30) continue
+      # Character-class mix: at least 2 of (upper, lower, digit)
+      has_upper = (t ~ /[A-Z]/)
+      has_lower = (t ~ /[a-z]/)
+      has_digit = (t ~ /[0-9]/)
+      classes = has_upper + has_lower + has_digit
+      if (classes < 2) continue
+      found_token = t
+      break
+    }
+    if (found_token == "") next
+
+    # Context check: look at this line + 2 before + 2 after for hevy/api-key
+    # We only have the prior buffer, so check there. For lookahead, we
+    # cannot know yet — accept the lookbehind window plus the current line.
+    context = body
+    start_i = buf_n - context_window
+    if (start_i < 1) start_i = 1
+    for (i = start_i; i <= buf_n; i++) {
+      context = context " " buf[i]
+    }
+    # Lowercase compare
+    ctx_lc = tolower(context)
+    if (ctx_lc ~ /hevy/ || ctx_lc ~ /api[-_]?key/) {
+      print file ":" line_no
+      exit 0
+    }
+  }
+' )
+
+if [ -n "$RESULT" ]; then
+    echo ""
+    echo "==============================================================="
+    echo "  pre-commit: possible Hevy API key detected — commit BLOCKED"
+    echo "==============================================================="
+    echo ""
+    echo "  Offending file:line"
+    echo "    $RESULT"
+    echo ""
+    echo "  If this is a false positive, commit with:"
+    echo "    git commit --no-verify"
+    echo ""
+    echo "  Otherwise: remove the key from the staged change, ensure"
+    echo "  .hevy-api.txt is in .gitignore, and try again."
+    echo ""
+    exit 1
+fi
+
+exit 0

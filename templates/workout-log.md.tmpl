@@ -1,0 +1,61 @@
+# Workout Log
+
+> Single source of truth for every training session and weight entry. Append to this file after every workout — do not spread session data across CLAUDE.md, week plans, or memory files.
+>
+> **Use the templates below exactly.** Do not invent fields, reorder fields, or skip the section headers. If a field is unknown, write `—` (em dash) or `not logged`. If a session is a Swim-Alternate (weather backup), use the **Gym Entry Template** with the modality field set to `Swim-Alternate (Variant {A/B/C})`.
+
+---
+
+## Templates (canonical — copy exactly)
+
+### Gym Entry Template
+
+```
+### W{N}D{N} — {YYYY-MM-DD} — Gym {A/B/—}: {Session Name}
+- **Weight (AM):** {weight} | **Duration:** {min} | **Location:** {gym, city} | **Overall RPE:** {1–10}
+
+| # | Exercise | Set 1 | Set 2 | Set 3 | Set 4 | Set RPE | Notes |
+|---|---|---|---|---|---|---|---|
+| 1 | {name} | {load×reps or time} | … | … | … | {RPE} | {brief} |
+
+**Notes:** {what happened, deviations from plan, equipment quirks}
+**Observations:** {soreness, sleep, energy, recovery signals}
+**Next session adjustments:** {what changes next time, or "hold"}
+```
+
+Set cell format: `{load}×{reps}` for weighted (e.g. `27.5×8`), `{reps} BW` for bodyweight (e.g. `6 BW`), `{seconds}s` for time-based (e.g. `60s`). Unused set columns = `—`.
+
+### Swim Entry Template
+
+```
+### W{N}D{N} — {YYYY-MM-DD} — Swim: {Session Name}
+- **Weight (AM):** {weight} | **Duration:** {MM:SS} | **Location:** {pool, city} | **Overall RPE / Effort:** {1–10 + descriptor}
+
+| Field | Value |
+|---|---|
+| Distance | {m} ({laps} × {lane length} m) |
+| Avg pace | {x'xx"/100m} |
+| Strokes | {Breaststroke xxx m, Mixed xxx m, …} |
+| Avg HR | {bpm or —} |
+| Active Cal / Total Cal | {x / y} |
+
+**Notes:** {what happened, deviations from plan}
+**Observations:** {soreness, sleep, energy, recovery signals}
+**Next session adjustments:** {what changes next time, or "hold"}
+```
+
+### Weight-only Entry (no workout that day)
+Add a row to the **Weight Log** table below. Do not create a session entry.
+
+---
+
+## Weight Log
+
+| Date | Weight ({{UNITS}}) | Notes |
+|---|---|---|
+
+---
+
+## Sessions
+
+_No sessions logged yet. Append entries below using the templates above._
