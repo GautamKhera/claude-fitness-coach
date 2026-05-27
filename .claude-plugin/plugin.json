@@ -4,9 +4,9 @@
   "description": "A personal fitness coach with Hevy integration. Goal-agnostic (fat loss, muscle, strength, maintenance) with onboarding and weekly review workflows.",
   "author": {
     "name": "Gautam",
-    "url": "https://github.com/REPLACE_WITH_GITHUB_USERNAME"
+    "url": "https://github.com/GautamKhera"
   },
-  "homepage": "https://github.com/REPLACE_WITH_GITHUB_USERNAME/claude-fitness-coach",
+  "homepage": "https://github.com/GautamKhera/claude-fitness-coach",
   "license": "MIT",
   "keywords": ["fitness", "hevy", "coaching", "workout", "training"]
 }

@@ -17,7 +17,7 @@ A Claude Code plugin that turns Claude into a personal fitness coach connected t
 Run these three commands in Claude Code, in order:
 
 ```
-/plugin marketplace add https://github.com/<user>/claude-fitness-coach
+/plugin marketplace add https://github.com/GautamKhera/claude-fitness-coach
 /plugin install fitness-coach
 /fitness-onboard
 ```
