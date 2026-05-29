@@ -8,8 +8,8 @@
     {
       "name": "fitness-coach",
       "source": {
-        "source": "github",
-        "repo": "GautamKhera/claude-fitness-coach"
+        "source": "url",
+        "url": "https://github.com/GautamKhera/claude-fitness-coach.git"
       },
       "description": "Personal fitness coach with Hevy integration",
       "version": "0.1.0",
