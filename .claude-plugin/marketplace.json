@@ -7,7 +7,10 @@
   "plugins": [
     {
       "name": "fitness-coach",
-      "source": ".",
+      "source": {
+        "source": "github",
+        "repo": "GautamKhera/claude-fitness-coach"
+      },
       "description": "Personal fitness coach with Hevy integration",
       "version": "0.1.0",
       "category": "lifestyle"
