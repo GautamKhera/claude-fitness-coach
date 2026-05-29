@@ -79,6 +79,54 @@ echo "== Plugin manifest =="
 require_json ".claude-plugin/plugin.json"
 require_json ".claude-plugin/marketplace.json"
 
+# Validate every marketplace plugin source. A string source must be a relative
+# path starting with "./" (a bare "." is rejected by Claude Code as an
+# unsupported source type) that resolves to a dir containing a plugin manifest.
+# An object source must declare a recognized type (github/url/git-subdir/npm)
+# with that type's required fields.
+require_plugin_sources() {
+    if [ -z "$PYTHON" ]; then
+        ok ".claude-plugin/marketplace.json plugin sources (skipped; install python for check)"
+        return
+    fi
+    msg=$("$PYTHON" - <<'PY'
+import json, os, sys
+root = os.getcwd()
+with open(os.path.join(root, ".claude-plugin", "marketplace.json"), encoding="utf-8") as fh:
+    marketplace = json.load(fh)
+RECOGNIZED = {"github": ["repo"], "url": ["url"], "git-subdir": ["url", "path"], "npm": ["package"]}
+for index, plugin in enumerate(marketplace.get("plugins", [])):
+    source = plugin.get("source")
+    if isinstance(source, str):
+        if not source.startswith("./"):
+            print(f"plugins[{index}].source string must start with './' (found {source!r})")
+            sys.exit(1)
+        manifest = os.path.normpath(os.path.join(root, source, ".claude-plugin", "plugin.json"))
+        if not os.path.isfile(manifest):
+            print(f"plugins[{index}].source missing .claude-plugin/plugin.json: {source}")
+            sys.exit(1)
+    elif isinstance(source, dict):
+        stype = source.get("source")
+        if stype not in RECOGNIZED:
+            print(f"plugins[{index}].source has unrecognized type {stype!r} (expected one of {sorted(RECOGNIZED)})")
+            sys.exit(1)
+        missing = [f for f in RECOGNIZED[stype] if not source.get(f)]
+        if missing:
+            print(f"plugins[{index}].source ({stype}) missing required field(s): {missing}")
+            sys.exit(1)
+    else:
+        print(f"plugins[{index}].source must be a string or object (found {type(source).__name__})")
+        sys.exit(1)
+PY
+)
+    if [ $? -eq 0 ]; then
+        ok ".claude-plugin/marketplace.json plugin sources"
+    else
+        bad "marketplace.json source: $msg"
+    fi
+}
+require_plugin_sources
+
 echo ""
 echo "== Skills =="
 for s in fitness-onboarding fitness-coaching hevy-api weekly-review workout-logging; do

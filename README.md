@@ -22,7 +22,6 @@ Run these three commands in Claude Code, in order:
 /fitness-onboard
 ```
 
-> Note: `<user>` is a placeholder for the GitHub username where this repo is published.
 
 The third command starts the onboarding wizard. It asks questions in six short stages and ends with a generated week-1 plan ready to start the next day.
 
